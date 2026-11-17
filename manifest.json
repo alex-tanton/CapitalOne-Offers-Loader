@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "CapitalOne Offers Loader",
+  "version": "3.0.0",
+  "description": "Load every offer from the CapitalOne Offers feed, then search, filter and sort them.",
+  "icons": {
+    "16": "icon/16.png",
+    "48": "icon/48.png",
+    "128": "icon/128.png"
+  },
+  "host_permissions": [
+    "https://capitaloneoffers.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://capitaloneoffers.com/feed*"
+      ],
+      "js": [
+        "core.js",
+        "content.js"
+      ],
+      "run_at": "document_idle",
+      "world": "MAIN"
+    }
+  ]
+}

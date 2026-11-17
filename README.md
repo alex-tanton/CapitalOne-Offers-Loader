@@ -1,55 +1,21 @@
-# Capital One Offers Loader
+# CapitalOne Offers Loader
 
-A Google Chrome extension (Manifest V3) that loads all available Capital One Offers at once and provides fast searching, filtering, and sorting directly on the Capital One Offers feed page (`capitaloneoffers.com/feed*`). Intended for personal and development use.
+Loads the offers from the CapitalOne Offers feed (`https://capitaloneoffers.com/feed`) and lets you search, filter and sort them.
 
-## Features
+## Filters
+Reward type chips, Availability and Merchant all accept several selections at once. Choices within one filter are OR'd (% back or Bonus miles), different filters are AND'd. **Min reward value** compares the first number in the reward text (5 in "Up to 5% back", 9 in "9X miles"), so pair it with a reward type chip when you do not want to mix units. **One offer per merchant** keeps only the first matching offer for each merchant.
 
-- **Load All Deals**: Automatically pages through and retrieves all active Capital One offers via the internal feed API.
-- **Persistent Caching**: Caches loaded deals in browser storage so your offers persist across page navigations without needing to re-fetch.
-- **Reload / Refresh**: Includes a "Reload Deals" button to clear cached deals and fetch fresh offers.
-- **Instant Search**: Real-time search filter for loaded deals by merchant name, online/in-store availability, or reward details.
-- **Reward Type Filtering**: Filter deals by reward type:
-  - `% Back`
-  - `$ Back (Up To)`
-  - `$ Back (Flat)`
-  - `Earning Rate` (multiplier e.g. 9X miles)
-  - `Bonus Miles (Up To)`
-  - `Bonus Miles (Flat)`
-- **Sorting**: Toggle sorting to view highest reward offers first.
-- **Native Deal Activation**: Clicking any deal tile integrates with Capital One's underlying offer activation flow or navigates directly to the offer details.
+## Install
+1. Open `chrome://extensions` and turn on **Developer mode**.
+2. Select **Load unpacked** and choose this folder.
+3. Open https://capitaloneoffers.com/feed while signed in. An **Offers explorer** button appears at the bottom right.
 
-## Repository Layout
+## How it works
+- Requests the same `GET /feed/<card>` pages the site requests, following `cursor` for up to **Max pages** (default 50).
+- **View offer** opens the offer's own `redirectUrl` when the feed provides one. Otherwise it opens the offer's detail page on the site, using the site's own offer id (or the same id format the site builds). If neither is possible it presses the site's own tile for that merchant.
+- Results are cached for 60 minutes per card, since the links can be signed by the site. Switching cards on the site loads that card's offers separately.
+- Settings (Max pages, Delay, Cache) are saved in the page's `localStorage`.
+- Only shown on the feed (`/feed`), not on an offer's detail page.
 
-- [chrome-ext/manifest.json](chrome-ext/manifest.json) — Manifest V3 extension configuration
-- [chrome-ext/content.js](chrome-ext/content.js) — Content script handling session extraction, deal pagination, caching, UI controls, search, and filtering
-- [chrome-ext/content.css](chrome-ext/content.css) — Styles for extension toolbar, grid, filters, and cards
-- [chrome-ext/icons/](chrome-ext/icons/) — Extension icon assets
-
-## Getting Started
-
-### Prerequisites
-
-- Google Chrome (or any Chromium-based browser supporting Manifest V3).
-
-### Installation (Development Mode)
-
-1. Clone or download this repository.
-2. Open Chrome and navigate to `chrome://extensions/`.
-3. Enable **Developer mode** using the toggle in the top-right corner.
-4. Click **Load unpacked** in the top-left corner.
-5. Select the [chrome-ext](chrome-ext/) directory from this repository.
-6. Navigate to [capitaloneoffers.com/feed](https://capitaloneoffers.com/feed) and log into your Capital One account to use the extension toolbar.
-
-## Packaging
-
-To package the extension into a zip file for distribution (e.g., via PowerShell on Windows):
-
-```powershell
-Compress-Archive -Path .\chrome-ext\* -DestinationPath .\chrome-ext.zip -Force
-```
-
-## Development Notes
-
-- The extension executes in the page context (`MAIN` world) to read session state and interact seamlessly with React/Remix state.
-- Edit [chrome-ext/content.js](chrome-ext/content.js) to adjust API parameters, delay intervals, or scraping logic.
-- Edit [chrome-ext/content.css](chrome-ext/content.css) to adjust the UI toolbar or deal card styling.
+## Why it runs in the page's own context
+The extension uses `"world": "MAIN"` so it can read the site's session state (card id and view details) and notice when you switch credit cards. That world has no `chrome.storage`, which is why `localStorage` is used instead.
